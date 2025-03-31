@@ -1,44 +1,63 @@
-TOP 1: <a class="top1_name">NA</a> Points: <a class="top1_points">NA</a><br>
-TOP 2: <a class="top2_name">NA</a> Points: <a class="top2_points">NA</a><br>
-TOP 3: <a class="top3_name">NA</a> Points: <a class="top3_points">NA</a>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Топ 3 игрока</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        .top-player { margin: 10px; padding: 10px; border: 1px solid #ccc; }
+        .points { font-weight: bold; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Топ 3 игрока</h1>
+    
+    <div class="top-player">
+        <span class="top1_name">Загрузка...</span> - 
+        <span class="top1_points points">?</span> очков
+    </div>
+    
+    <div class="top-player">
+        <span class="top2_name">Загрузка...</span> - 
+        <span class="top2_points points">?</span> очков
+    </div>
+    
+    <div class="top-player">
+        <span class="top3_name">Загрузка...</span> - 
+        <span class="top3_points points">?</span> очков
+    </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Функция для получения топ-3 игроков
-    async function getTopPlayers() {
-        try {
-            const response = await fetch('get_top_players.php');
-            
-            if (!response.ok) {
-                throw new Error('Ошибка при получении данных');
+    <script>
+    $(document).ready(function() {
+        $.ajax({
+            url: 'api.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(topPlayers) {
+                if (topPlayers.error) {
+                    console.error('Ошибка:', topPlayers.error);
+                    return;
+                }
+
+                // Обновляем данные на странице
+                if (topPlayers.length > 0) {
+                    $('.top1_name').text(topPlayers[0].name);
+                    $('.top1_points').text(topPlayers[0].value);
+                }
+                if (topPlayers.length > 1) {
+                    $('.top2_name').text(topPlayers[1].name);
+                    $('.top2_points').text(topPlayers[1].value);
+                }
+                if (topPlayers.length > 2) {
+                    $('.top3_name').text(topPlayers[2].name);
+                    $('.top3_points').text(topPlayers[2].value);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ошибка запроса:', error);
+                $('.top1_name').text('Ошибка загрузки данных');
             }
-
-            const topPlayers = await response.json();
-
-            // Обновляем данные на странице
-            updateTopPlayers(topPlayers);
-        } catch (error) {
-            console.error('Ошибка:', error);
-        }
-    }
-
-    // Функция для обновления данных на странице
-    function updateTopPlayers(players) {
-        for (let i = 0; i < players.length; i++) {
-            const rank = i + 1;
-            const player = players[i];
-            
-            const nameElement = document.querySelector(`.top${rank}_name`);
-            const pointsElement = document.querySelector(`.top${rank}_points`);
-            
-            if (nameElement && pointsElement) {
-                nameElement.textContent = player.name || 'N/A';
-                pointsElement.textContent = player.value || 'N/A';
-            }
-        }
-    }
-
-    // Запускаем получение данных
-    getTopPlayers();
-});
-</script>
+        });
+    });
+    </script>
+</body>
+</html>
