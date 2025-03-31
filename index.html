@@ -1,63 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Топ 3 игрока</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <style>
-        .top-player { margin: 10px; padding: 10px; border: 1px solid #ccc; }
-        .points { font-weight: bold; color: green; }
-    </style>
-</head>
-<body>
-    <h1>Топ 3 игрока</h1>
-    
-    <div class="top-player">
-        <span class="top1_name">Загрузка...</span> - 
-        <span class="top1_points points">?</span> очков
-    </div>
-    
-    <div class="top-player">
-        <span class="top2_name">Загрузка...</span> - 
-        <span class="top2_points points">?</span> очков
-    </div>
-    
-    <div class="top-player">
-        <span class="top3_name">Загрузка...</span> - 
-        <span class="top3_points points">?</span> очков
-    </div>
-
-    <script>
-    $(document).ready(function() {
-        $.ajax({
-            url: 'api.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function(topPlayers) {
-                if (topPlayers.error) {
-                    console.error('Ошибка:', topPlayers.error);
-                    return;
-                }
-
-                // Обновляем данные на странице
-                if (topPlayers.length > 0) {
-                    $('.top1_name').text(topPlayers[0].name);
-                    $('.top1_points').text(topPlayers[0].value);
-                }
-                if (topPlayers.length > 1) {
-                    $('.top2_name').text(topPlayers[1].name);
-                    $('.top2_points').text(topPlayers[1].value);
-                }
-                if (topPlayers.length > 2) {
-                    $('.top3_name').text(topPlayers[2].name);
-                    $('.top3_points').text(topPlayers[2].value);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Ошибка запроса:', error);
-                $('.top1_name').text('Ошибка загрузки данных');
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: 'api.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Получены данные:', response);
+            
+            if (response.error) {
+                showError(response.message || response.error);
+                return;
             }
-        });
+
+            updateTopPlayers(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Ошибка запроса:', status, error);
+            showError('Ошибка соединения с сервером');
+        }
     });
-    </script>
-</body>
-</html>
+
+    function updateTopPlayers(players) {
+        players.forEach((player, index) => {
+            const num = index + 1;
+            $(`.top${num}_name`).text(player.name || 'Неизвестно');
+            $(`.top${num}_points`).text(player.value || '0');
+        });
+    }
+
+    function showError(message) {
+        $('.top1_name').text('Ошибка: ' + message);
+        $('.top1_points').text('');
+    }
+});
+</script>
