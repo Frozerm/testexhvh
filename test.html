@@ -1,0 +1,44 @@
+TOP 1: <a class="top1_name">NA</a> Points: <a class="top1_points">NA</a><br>
+TOP 2: <a class="top2_name">NA</a> Points: <a class="top2_points">NA</a><br>
+TOP 3: <a class="top3_name">NA</a> Points: <a class="top3_points">NA</a>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для получения топ-3 игроков
+    async function getTopPlayers() {
+        try {
+            const response = await fetch('get_top_players.php');
+            
+            if (!response.ok) {
+                throw new Error('Ошибка при получении данных');
+            }
+
+            const topPlayers = await response.json();
+
+            // Обновляем данные на странице
+            updateTopPlayers(topPlayers);
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+
+    // Функция для обновления данных на странице
+    function updateTopPlayers(players) {
+        for (let i = 0; i < players.length; i++) {
+            const rank = i + 1;
+            const player = players[i];
+            
+            const nameElement = document.querySelector(`.top${rank}_name`);
+            const pointsElement = document.querySelector(`.top${rank}_points`);
+            
+            if (nameElement && pointsElement) {
+                nameElement.textContent = player.name || 'N/A';
+                pointsElement.textContent = player.value || 'N/A';
+            }
+        }
+    }
+
+    // Запускаем получение данных
+    getTopPlayers();
+});
+</script>
