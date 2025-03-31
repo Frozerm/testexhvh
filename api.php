@@ -1,21 +1,44 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET");
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Разрешаем запросы с любого домена (для теста)
+header('Access-Control-Allow-Origin: *'); // Разрешаем CORS запросы
 
-$servername = "95.213.255.80";
-$username = "u1126_BrDnq9Ff94";
-$password = "GGOGDcFSi2H@BcVVK0G.Lief";
-$dbname = "s1126_1v1";
+// Проверка, что скрипт вызывается через HTTP
+if (php_sapi_name() === 'cli') {
+    die(json_encode(['error' => 'Direct access not allowed']));
+}
+
+// Конфигурация базы данных
+$config = [
+    'host' => '95.213.255.80',
+    'db'   => 's1126_1v1',
+    'user' => 'u1126_BrDnq9Ff94',
+    'pass' => 'GGOGDcFSi2H@BcVVK0G.Lief'
+];
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Подключение к БД
+    $dsn = "mysql:host={$config['host']};dbname={$config['db']};charset=utf8";
+    $pdo = new PDO($dsn, $config['user'], $config['pass']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    $stmt = $conn->query("SELECT name, value FROM lvl_base ORDER BY value DESC LIMIT 3");
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Запрос топ-3 игроков
+    $stmt = $pdo->query("SELECT name, value FROM lvl_base ORDER BY value DESC LIMIT 3");
+    $players = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode($result);
+    // Ответ в JSON
+    echo json_encode([
+        'success' => true,
+        'data' => $players
+    ], JSON_UNESCAPED_UNICODE);
+    
 } catch(PDOException $e) {
-    echo json_encode(['error' => $e->getMessage()]);
+    // Обработка ошибок
+    echo json_encode([
+        'success' => false,
+        'error' => 'Database error',
+        'message' => $e->getMessage()
+    ]);
 }
 ?>
