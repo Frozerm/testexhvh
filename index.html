@@ -1,36 +1,97 @@
-<script>
-$(document).ready(function() {
-    $.ajax({
-        url: 'api.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            console.log('Получены данные:', response);
-            
-            if (response.error) {
-                showError(response.message || response.error);
-                return;
-            }
-
-            updateTopPlayers(response);
-        },
-        error: function(xhr, status, error) {
-            console.error('Ошибка запроса:', status, error);
-            showError('Ошибка соединения с сервером');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Топ 3 игрока</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
         }
-    });
+        .player-card {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .player-name {
+            font-weight: bold;
+        }
+        .player-points {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .loading {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Топ 3 игрока</h1>
+    
+    <div id="top-players">
+        <!-- Будет заполнено JavaScript -->
+        <div class="loading">Загрузка данных...</div>
+    </div>
 
-    function updateTopPlayers(players) {
-        players.forEach((player, index) => {
-            const num = index + 1;
-            $(`.top${num}_name`).text(player.name || 'Неизвестно');
-            $(`.top${num}_points`).text(player.value || '0');
+    <script>
+    $(document).ready(function() {
+        // Функция для обновления интерфейса
+        function updateUI(data) {
+            let html = '';
+            
+            if (data && data.length > 0) {
+                data.forEach((player, index) => {
+                    const place = index + 1;
+                    html += `
+                        <div class="player-card">
+                            <span class="player-name">${place}. ${player.name || 'Неизвестный игрок'}</span>
+                            <span class="player-points">${player.value || 0} очков</span>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="error">Нет данных об игроках</div>';
+            }
+            
+            $('#top-players').html(html);
+        }
+
+        // Функция для показа ошибки
+        function showError(message) {
+            $('#top-players').html(`<div class="error">Ошибка: ${message}</div>`);
+        }
+
+        // Запрос к API
+        $.ajax({
+            url: 'api.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Ответ сервера:', response);
+                
+                if (response.success && response.data) {
+                    updateUI(response.data);
+                } else {
+                    showError(response.message || 'Неизвестная ошибка сервера');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ошибка запроса:', status, error);
+                showError('Не удалось подключиться к серверу');
+            }
         });
-    }
-
-    function showError(message) {
-        $('.top1_name').text('Ошибка: ' + message);
-        $('.top1_points').text('');
-    }
-});
-</script>
+    });
+    </script>
+</body>
+</html>
